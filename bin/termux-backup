@@ -1,0 +1,18 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -e
+
+BACKUP_DIR="$HOME/storage/shared/TermuxBackups"
+mkdir -p "$BACKUP_DIR"
+DATE=$(date +%Y%m%d_%H%M%S)
+TAR_FILE="$BACKUP_DIR/termux_config_$DATE.tar.gz"
+PKG_FILE="$BACKUP_DIR/pkg_list_$DATE.txt"
+
+echo "📦 Backing up installed packages list to $PKG_FILE..."
+dpkg -l | awk '{print $2, $3}' > "$PKG_FILE"
+
+echo "💾 Backing up configuration files to $TAR_FILE..."
+tar --exclude='.cache' --exclude='.git' --exclude='.npm' -czf "$TAR_FILE" \
+    -C "$HOME" .zshrc .termux .config .tmux.conf.local start-x11.sh stop-x11.sh 2>/dev/null || true
+
+echo "✅ Backup complete!"
+echo "📍 Archive location: $TAR_FILE"

@@ -32,7 +32,7 @@ A modern, high-performance, aesthetic **Termux terminal customization** and auto
 Open Termux on your Android phone and paste the following command:
 
 ```bash
-pkg install -y git && git clone https://github.com/YOUR_USERNAME/termux-dotfiles.git ~/.termux-dotfiles && bash ~/.termux-dotfiles/install.sh
+pkg install -y git && git clone https://github.com/apravint/termux-dotfiles.git ~/.termux-dotfiles && bash ~/.termux-dotfiles/install.sh
 ```
 
 ---

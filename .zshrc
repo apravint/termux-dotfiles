@@ -27,6 +27,7 @@ alias la="eza -lah --icons --group-directories-first"
 alias cat="bat --style=header,grid,snip"
 alias lg="lazygit"
 alias ff="fastfetch"
+alias claw="openclaw"
 alias reload="source ~/.zshrc"
 alias backup="~/bin/termux-backup"
 

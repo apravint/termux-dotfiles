@@ -66,7 +66,21 @@ RF
 }
 
 wallpaper() {
-  [ -e "$S/background" ] && feh --no-fehbg --bg-fill "$S/background" 2>/dev/null
+  [ -e "$S/background" ] || return 0
+  # Detect screen orientation: on a portrait phone, --bg-max keeps the full
+  # image visible (letterboxed) instead of --bg-fill which crops most of it.
+  local sw sh mode=fill
+  if command -v xdpyinfo >/dev/null 2>&1; then
+    read -r sw sh < <(xdpyinfo 2>/dev/null | sed -n 's/.*dimensions:[[:space:]]*\([0-9]*\)x\([0-9]*\).*/\1 \2/p')
+  fi
+  if [ -n "${sw:-}" ] && [ -n "${sh:-}" ] && [ "$sh" -gt "$sw" ]; then
+    mode=max  # portrait screen: show full wallpaper, fill remaining space with bg colour
+  fi
+  # Set the X root window colour to the theme background so letterbox bars match
+  local bg_hex
+  bg_hex=$(grep '^bg = ' "$S/polybar.ini" 2>/dev/null | head -1 | sed 's/bg = //')
+  [ -n "$bg_hex" ] && xsetroot -solid "$bg_hex" 2>/dev/null
+  feh --no-fehbg --bg-"$mode" --image-bg "$bg_hex" "$S/background" 2>/dev/null
 }
 
 apply_desktop() {

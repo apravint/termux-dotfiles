@@ -46,14 +46,18 @@ red = $red
 PB
     cat "$X/polybar.ini"; } > "$S/polybar.ini"
   cat > "$HOME/.config/rofi/config.rasi" <<RF
-configuration { show-icons: true; drun-display-format: "{name}"; icon-theme: "Papirus-Dark"; }
-* { background-color: $bg; text-color: $fg; font: "JetBrains Mono 12"; }
-window { width: 40%; border: 2px; border-color: $acc; padding: 12px; background-color: $bg; }
+configuration {
+  show-icons: true;
+  drun-display-format: "{name}";
+  icon-theme: "Papirus-Dark";
+}
+* { background-color: $bg; text-color: $fg; font: "JetBrains Mono 13"; }
+window { width: 85%; border: 2px; border-color: $acc; padding: 14px; background-color: $bg; }
 mainbox { background-color: $bg; }
-inputbar { padding: 6px; children: [ prompt, entry ]; }
-prompt { text-color: $acc; padding: 0 8px 0 0; }
-listview { lines: 12; scrollbar: false; border: 0; }
-element { padding: 6px; border: 0; }
+inputbar { padding: 10px; children: [ prompt, entry ]; }
+prompt { text-color: $acc; padding: 0 10px 0 0; }
+listview { lines: 14; scrollbar: false; border: 0; spacing: 2px; }
+element { padding: 10px 8px; border: 0; border-radius: 4px; }
 element normal.normal, element alternate.normal, element normal.active, element alternate.active { background-color: $bg; text-color: $fg; }
 element normal.urgent, element alternate.urgent { background-color: $bg; text-color: $red; }
 element selected.normal, element selected.active, element selected.urgent { background-color: $acc; text-color: $bg; }

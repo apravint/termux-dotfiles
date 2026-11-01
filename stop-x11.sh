@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/zsh
 # Stop the X11 desktop: ask politely, force-kill only what is left.
-procs=(xfce4-session xfwm4 xfce4-panel xfdesktop termux-x11 Xwayland termux-vnc vncserver)
+procs=(polybar picom i3 xfce4-session xfwm4 xfce4-panel xfdesktop termux-x11 Xwayland termux-vnc vncserver)
 running() { for p in $procs; do pgrep -x "$p" >/dev/null && return 0; done; return 1; }
 
 if ! running; then

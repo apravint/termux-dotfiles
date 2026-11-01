@@ -1,0 +1,95 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Applies Iram OS themes (~/iram-os/themes) to i3, polybar, rofi and the wallpaper.
+# Usage: theme init | apply-desktop | set <name> | pick | next-bg | list
+set -u
+X="$HOME/termux-dotfiles/iram-x11"
+THEMES="${IRAM_THEMES:-$HOME/iram-os/themes}"
+S="$HOME/.local/state/iram-x11"
+DEFAULT=tokyo-night
+mkdir -p "$S" "$HOME/.config/rofi"
+
+list() { for d in "$THEMES"/*/; do [ -f "$d/colors.toml" ] && basename "$d"; done; }
+current() { cat "$S/theme.name" 2>/dev/null || echo "$DEFAULT"; }
+
+# Read a "#rrggbb" value from colors.toml, with a fallback
+col() {
+  local v
+  v=$(sed -nE "s/^$1[[:space:]]*=[[:space:]]*\"(#[0-9A-Fa-f]{6})\".*/\1/p" "$THEMES/$T/colors.toml" | head -1)
+  echo "${v:-$2}"
+}
+
+backgrounds() { find "$THEMES/$T/backgrounds/" -maxdepth 1 -type f 2>/dev/null | sort; }
+
+generate() {
+  T="$1"
+  [ -f "$THEMES/$T/colors.toml" ] || { echo "Unknown theme: $T" >&2; return 1; }
+  local bg fg acc sec mut dbg lbg red
+  bg=$(col background "#1a1b26"); fg=$(col foreground "#c0caf5"); acc=$(col accent "#7aa2f7")
+  sec=$(col secondary "$acc"); mut=$(col muted "#565f89"); dbg=$(col dark_background "$bg")
+  lbg=$(col lighter_background "$bg"); red=$(col red "#f7768e")
+
+  cat > "$S/i3-colors" <<I3
+client.focused          $acc $acc $bg $sec $acc
+client.focused_inactive $lbg $lbg $fg $lbg $lbg
+client.unfocused        $dbg $dbg $mut $dbg $dbg
+client.urgent           $red $red $bg $red $red
+client.background       $bg
+I3
+  { cat <<PB
+[colors]
+bg = $bg
+fg = $fg
+accent = $acc
+muted = $mut
+red = $red
+
+PB
+    cat "$X/polybar.ini"; } > "$S/polybar.ini"
+  cat > "$HOME/.config/rofi/config.rasi" <<RF
+configuration { show-icons: false; drun-display-format: "{name}"; }
+* { background-color: $bg; text-color: $fg; font: "JetBrains Mono 12"; }
+window { width: 40%; border: 2px; border-color: $acc; padding: 12px; background-color: $bg; }
+mainbox { background-color: $bg; }
+inputbar { padding: 6px; children: [ prompt, entry ]; }
+prompt { text-color: $acc; padding: 0 8px 0 0; }
+listview { lines: 12; scrollbar: false; border: 0; }
+element { padding: 6px; border: 0; }
+element normal.normal, element alternate.normal, element normal.active, element alternate.active { background-color: $bg; text-color: $fg; }
+element normal.urgent, element alternate.urgent { background-color: $bg; text-color: $red; }
+element selected.normal, element selected.active, element selected.urgent { background-color: $acc; text-color: $bg; }
+element-text { background-color: inherit; text-color: inherit; }
+RF
+  echo "$T" > "$S/theme.name"
+  local b; b=$(backgrounds | head -1)
+  [ -n "$b" ] && ln -sfn "$b" "$S/background"
+  return 0
+}
+
+wallpaper() {
+  [ -e "$S/background" ] && feh --no-fehbg --bg-fill "$S/background" 2>/dev/null
+}
+
+apply_desktop() {
+  pgrep -x picom >/dev/null || picom --config "$X/picom.conf" -b 2>/dev/null
+  wallpaper
+  pkill -x polybar 2>/dev/null; sleep 0.3
+  polybar -c "$S/polybar.ini" iram > "$S/polybar.log" 2>&1 &
+  disown
+}
+
+case "${1:-}" in
+  init)  generate "$(current)" || generate "$DEFAULT" ;;
+  apply-desktop) apply_desktop ;;
+  set)   generate "${2:?theme name}" || exit 1; 
+         if i3-msg -q reload 2>/dev/null; then apply_desktop; fi ;;
+  pick)
+    t=$(list | rofi -dmenu -i -p "Theme") || exit 0
+    [ -n "$t" ] && exec "$0" set "$t" ;;
+  next-bg)
+    T=$(current)
+    cur=$(readlink "$S/background" 2>/dev/null)
+    next=$(backgrounds | awk -v c="$cur" 'NR==1{f=$0} p{print; found=1; exit} $0==c{p=1} END{if(!found) print f}')
+    [ -n "$next" ] && ln -sfn "$next" "$S/background" && wallpaper ;;
+  list)  list ;;
+  *) echo "Usage: theme init|apply-desktop|set <name>|pick|next-bg|list" >&2; exit 2 ;;
+esac

@@ -1,0 +1,6 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Termux:X11 session entry point for the Iram i3 desktop.
+X="$HOME/termux-dotfiles/iram-x11"
+export XDG_CURRENT_DESKTOP=i3 XDG_SESSION_TYPE=x11 IRAM_X11=1
+"$X/theme" init
+exec i3 -c "$X/i3.conf"

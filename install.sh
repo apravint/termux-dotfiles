@@ -27,6 +27,11 @@ pkg install -y \
   openssh \
   proot-distro \
   xfce4 \
+  i3 \
+  polybar \
+  rofi \
+  picom \
+  feh \
   termux-x11-nightly 2>/dev/null || pkg install -y xfce4
 
 # Set up Zsh plugins

@@ -1,0 +1,23 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Open the first available app of a kind: open term [-e cmd...] | browser | files
+kind="${1:-}"; shift || true
+first() { for c in "$@"; do command -v "$c" >/dev/null && { echo "$c"; return 0; }; done; return 1; }
+case "$kind" in
+  term)
+    t=$(first alacritty xfce4-terminal xterm) || exit 1
+    if [ "${1:-}" = "-e" ]; then
+      shift
+      case "$t" in
+        xfce4-terminal) exec "$t" -x "$@" ;;
+        *) exec "$t" -e "$@" ;;
+      esac
+    fi
+    exec "$t" ;;
+  browser)
+    b=$(first firefox chromium chromium-browser) && exec "$b"
+    exec termux-open-url "https://www.google.com" ;;
+  files)
+    f=$(first thunar pcmanfm nautilus) && exec "$f"
+    exec "$0" term -e "${SHELL:-sh}" ;;
+  *) echo "Usage: open term|browser|files" >&2; exit 2 ;;
+esac

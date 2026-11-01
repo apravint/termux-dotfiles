@@ -2,5 +2,17 @@
 # Termux:X11 session entry point for the Iram i3 desktop.
 X="$HOME/termux-dotfiles/iram-x11"
 export XDG_CURRENT_DESKTOP=i3 XDG_SESSION_TYPE=x11 IRAM_X11=1
+
+# Apply GTK dark theme + Papirus icons for this session
+export GTK_THEME=Adwaita:dark
+
+# Initialize theme colours and wallpaper
 "$X/theme" init
+
+# Start notification daemon
+command -v dunst >/dev/null && dunst -config "$X/dunstrc" &
+
+# Start clipboard manager
+command -v xclip >/dev/null && true  # xclip is a tool, not a daemon
+
 exec i3 -c "$X/i3.conf"

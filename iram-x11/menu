@@ -9,26 +9,46 @@ case "${1:-}" in
     esac ;;
   keys)
     rofi -dmenu -i -p "Keys" >/dev/null <<KEYS
+━━━ Launch ━━━━━━━━━━━━━━━━━━━━━━
 Super+Return / Alt+Return    Terminal
-Super+Space / Ctrl+Space / Alt+Space    App launcher
-Super+B    Browser
-Super+E    Files
-Super+T    Theme picker
-Super+Shift+W    Next wallpaper
-Super+Q / Super+W / Alt+Q    Close window
-Super+F    Fullscreen
-Super+Alt+V    Toggle floating
-Super+J    Toggle split direction
-Super+G    Tabbed group
-Super+O    Keep on all workspaces
-Super+R    Resize mode
-Super+Arrows    Move focus
-Super+Shift+Arrows    Move window
-Super+1-0 / Alt+1-5    Switch workspace
-Super+Shift+1-0    Move window to workspace
-Super+Grave    Scratchpad
-Super+Escape    Power menu
-Super+M    Log out
+Super+Space / Ctrl+Space     App launcher (with icons)
+Super+D                      Run command
+Super+B                      Browser
+Super+E                      Files
+Super+Ctrl+E                 Text editor (Geany)
+Super+Shift+N                Neovim
+Super+Shift+D                Lazygit
+━━━ Tools ━━━━━━━━━━━━━━━━━━━━━━━
+Super+Ctrl+A                 Calculator
+Super+Ctrl+T                 System monitor (btop)
+Super+Shift+I                Task manager
+Super+Shift+P                Volume control
+Super+Ctrl+M                 Audio visualizer (cava)
+Super+Shift+S                Screenshot
+Super+I                      Appearance settings
+━━━ Desktop ━━━━━━━━━━━━━━━━━━━━━
+Super+T                      Theme picker
+Super+Shift+W                Next wallpaper
+Super+N                      Dismiss notification
+Super+Shift+,                Dismiss all notifications
+━━━ Windows ━━━━━━━━━━━━━━━━━━━━━
+Super+Q / Alt+Q              Close window
+Super+F                      Fullscreen
+Super+Alt+V                  Toggle floating
+Super+J                      Toggle split direction
+Super+G                      Tabbed / tiling
+Super+O                      Sticky (all workspaces)
+Super+R                      Resize mode
+Super+Arrows                 Move focus
+Super+Shift+Arrows           Move window
+Super+Grave                  Scratchpad
+━━━ Workspaces ━━━━━━━━━━━━━━━━━━
+Super+1-0 / Alt+1-5          Switch workspace
+Super+Shift+1-0              Move to workspace
+Super+Tab                    Next workspace
+━━━ Session ━━━━━━━━━━━━━━━━━━━━━
+Super+Escape                 Power menu
+Super+M                      Log out
 KEYS
     ;;
   *) echo "Usage: menu power|keys" >&2; exit 2 ;;

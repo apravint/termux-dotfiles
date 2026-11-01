@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Open the first available app of a kind: open term [-e cmd...] | browser | files
+# Open the first available app: open term|browser|files|editor|media|pdf|calc|settings|task|screenshot [args...]
 kind="${1:-}"; shift || true
 first() { for c in "$@"; do command -v "$c" >/dev/null && { echo "$c"; return 0; }; done; return 1; }
 case "$kind" in
@@ -14,10 +14,25 @@ case "$kind" in
     fi
     exec "$t" ;;
   browser)
-    b=$(first firefox chromium chromium-browser) && exec "$b"
-    exec termux-open-url "https://www.google.com" ;;
+    b=$(first firefox chromium chromium-browser netsurf) && exec "$b" "$@"
+    termux-open-url "${1:-https://www.google.com}" ;;
   files)
-    f=$(first thunar pcmanfm nautilus) && exec "$f"
+    f=$(first thunar pcmanfm nautilus) && exec "$f" "$@"
     exec "$0" term -e "${SHELL:-sh}" ;;
-  *) echo "Usage: open term|browser|files" >&2; exit 2 ;;
+  editor)
+    e=$(first geany mousepad leafpad) && exec "$e" "$@"
+    exec "$0" term -e nvim "$@" ;;
+  media)
+    m=$(first mpv vlc parole) && exec "$m" "$@" ;;
+  pdf)
+    p=$(first evince zathura atril mupdf) && exec "$p" "$@" ;;
+  calc)
+    exec galculator ;;
+  settings)
+    exec lxappearance ;;
+  task)
+    exec xfce4-taskmanager ;;
+  screenshot)
+    s=$(first xfce4-screenshooter flameshot scrot) && exec "$s" "$@" ;;
+  *) echo "Usage: open term|browser|files|editor|media|pdf|calc|settings|task|screenshot" >&2; exit 2 ;;
 esac

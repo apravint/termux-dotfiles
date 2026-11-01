@@ -1,0 +1,90 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# ============================================================================
+# IRAM Desktop Setup for Termux:X11
+# Run this in a normal Termux session (not proot/root): ./setup-desktop
+# ============================================================================
+set -euo pipefail
+
+if [ "$(id -u)" = 0 ]; then
+  echo "❌ Run this in normal Termux, not as root or inside proot." >&2
+  exit 1
+fi
+
+echo "🖥️  Setting up Iram Desktop for Termux:X11..."
+echo ""
+
+# ── Core desktop (i3 tiling + bar + launcher + compositor + wallpaper) ──
+CORE="i3 polybar rofi picom feh"
+
+# ── Browsers ──
+BROWSER="firefox chromium"
+
+# ── File manager extras ──
+FILES="thunar-archive-plugin tumbler"
+
+# ── Text editors ──
+EDITOR="mousepad geany"
+
+# ── Media ──
+MEDIA="mpv vlc ristretto"
+
+# ── Documents ──
+DOCS="evince zathura"
+
+# ── System tools ──
+SYSTEM="pavucontrol galculator xfce4-taskmanager lxappearance xfce4-screenshooter xclip scrot dunst"
+
+# ── Notifications ──
+NOTIFY="xfce4-notifyd"
+
+# ── Look & feel ──
+THEME="papirus-icon-theme adwaita-icon-theme ttf-nerd-fonts-symbols"
+
+# ── TUI tools ──
+TUI="btop cava nnn mc"
+
+echo "📦 Installing packages..."
+pkg update -y
+pkg install -y $CORE $BROWSER $FILES $EDITOR $MEDIA $DOCS $SYSTEM $NOTIFY $THEME $TUI
+
+echo ""
+echo "⚙️  Configuring GTK theme and icons..."
+mkdir -p ~/.config/gtk-3.0 ~/.config/gtk-4.0
+
+cat > ~/.config/gtk-3.0/settings.ini <<'GTK'
+[Settings]
+gtk-theme-name=Adwaita-dark
+gtk-icon-theme-name=Papirus-Dark
+gtk-font-name=JetBrains Mono 10
+gtk-cursor-theme-name=default
+gtk-application-prefer-dark-theme=true
+gtk-decoration-layout=:close
+gtk-toolbar-style=GTK_TOOLBAR_ICONS
+gtk-enable-animations=true
+GTK
+cp ~/.config/gtk-3.0/settings.ini ~/.config/gtk-4.0/settings.ini
+
+cat > ~/.gtkrc-2.0 <<'GTK2'
+gtk-theme-name="Adwaita-dark"
+gtk-icon-theme-name="Papirus-Dark"
+gtk-font-name="JetBrains Mono 10"
+gtk-cursor-theme-name="default"
+gtk-toolbar-style=GTK_TOOLBAR_ICONS
+GTK2
+
+echo ""
+echo "✅ Desktop setup complete!"
+echo ""
+echo "Apps installed:"
+echo "  🌐 Browsers:    Firefox, Chromium"
+echo "  📁 Files:        Thunar (with archive support & thumbnails)"
+echo "  📝 Editors:      Mousepad, Geany (IDE)"
+echo "  🎬 Media:        MPV, VLC, Ristretto (images)"
+echo "  📄 Documents:    Evince (PDF), Zathura (PDF)"
+echo "  🔧 System:       Pavucontrol, Calculator, Task Manager, Screenshot"
+echo "  🎨 Look:         Papirus icons, Adwaita dark, Nerd Fonts symbols"
+echo "  💻 TUI:          btop, cava, nnn, Midnight Commander"
+echo ""
+echo "Launch with: x11"
+echo "Theme picker: Super+T"
+echo "All keys:     Super+K"

@@ -1,0 +1,38 @@
+[global]
+    follow = mouse
+    width = 350
+    offset = 10x40
+    padding = 12
+    horizontal_padding = 14
+    frame_width = 2
+    corner_radius = 0
+    font = JetBrains Mono 10
+    markup = full
+    format = "<b>%s</b>\n%b"
+    alignment = left
+    show_age_threshold = 30
+    icon_position = left
+    max_icon_size = 48
+    icon_path = /usr/share/icons/Papirus-Dark/48x48/status:/usr/share/icons/Papirus-Dark/48x48/devices
+    sticky_history = yes
+    history_length = 20
+    mouse_left_click = close_current
+    mouse_right_click = close_all
+
+[urgency_low]
+    background = "#1a1b26"
+    foreground = "#a9b1d6"
+    frame_color = "#414868"
+    timeout = 5
+
+[urgency_normal]
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    frame_color = "#7aa2f7"
+    timeout = 10
+
+[urgency_critical]
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    frame_color = "#f7768e"
+    timeout = 0

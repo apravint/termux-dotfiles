@@ -32,6 +32,30 @@ pkg install -y \
   rofi \
   picom \
   feh \
+  firefox \
+  chromium \
+  mpv \
+  vlc \
+  evince \
+  zathura \
+  geany \
+  pavucontrol \
+  galculator \
+  xfce4-taskmanager \
+  lxappearance \
+  xclip \
+  scrot \
+  dunst \
+  thunar-archive-plugin \
+  tumbler \
+  xfce4-notifyd \
+  papirus-icon-theme \
+  adwaita-icon-theme \
+  ttf-nerd-fonts-symbols \
+  btop \
+  cava \
+  nnn \
+  mc \
   termux-x11-nightly 2>/dev/null || pkg install -y xfce4
 
 # Set up Zsh plugins

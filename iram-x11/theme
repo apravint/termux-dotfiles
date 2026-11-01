@@ -46,7 +46,7 @@ red = $red
 PB
     cat "$X/polybar.ini"; } > "$S/polybar.ini"
   cat > "$HOME/.config/rofi/config.rasi" <<RF
-configuration { show-icons: false; drun-display-format: "{name}"; }
+configuration { show-icons: true; drun-display-format: "{name}"; icon-theme: "Papirus-Dark"; }
 * { background-color: $bg; text-color: $fg; font: "JetBrains Mono 12"; }
 window { width: 40%; border: 2px; border-color: $acc; padding: 12px; background-color: $bg; }
 mainbox { background-color: $bg; }

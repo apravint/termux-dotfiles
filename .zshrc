@@ -30,6 +30,7 @@ alias ff="fastfetch"
 alias claw="openclaw"
 alias reload="source ~/.zshrc"
 alias backup="~/bin/termux-backup"
+alias clean="~/bin/clean-system"
 
 # Launch Termux:X11
 alias x11="~/start-x11.sh"
@@ -41,10 +42,18 @@ eval "$(zoxide init zsh 2>/dev/null)" || true
 # Initialize fzf keybindings & completion
 eval "$(fzf --zsh 2>/dev/null)" || true
 
-# Auto-start SSH Agent
-if [ -z "$SSH_AUTH_SOCK" ]; then
-   eval "$(ssh-agent -s)" > /dev/null
-   ssh-add ~/.ssh/id_ed25519 2>/dev/null
+# Share one SSH agent across all shells
+if [ -z "$SSH_AUTH_SOCK" ] && [ -f ~/.ssh/id_ed25519 ]; then
+   export SSH_AUTH_SOCK="$HOME/.ssh/agent/shared.sock"
+   ssh-add -l >/dev/null 2>&1
+   if [ $? -eq 2 ]; then
+      mkdir -p ~/.ssh/agent
+      rm -f "$SSH_AUTH_SOCK"
+      eval "$(ssh-agent -a "$SSH_AUTH_SOCK" -s)" > /dev/null
+   fi
+   if [ -t 0 ] && ! ssh-add -l >/dev/null 2>&1; then
+      ssh-add ~/.ssh/id_ed25519 2>/dev/null
+   fi
 fi
 
 # Initialize Starship Prompt

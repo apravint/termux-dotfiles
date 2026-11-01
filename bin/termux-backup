@@ -1,18 +1,55 @@
 #!/data/data/com.termux/files/usr/bin/bash
-set -e
+# Encrypted config backup. Restore:
+#   gpg -d termux_config_<date>.tar.gz.gpg | tar -xz -C "$HOME"
+# Env: BACKUP_DIR, BACKUP_KEEP (default 5), BACKUP_PASSFILE (for unattended runs)
+set -euo pipefail
+umask 077
 
-BACKUP_DIR="$HOME/storage/shared/TermuxBackups"
-mkdir -p "$BACKUP_DIR"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/storage/shared/TermuxBackups}"
+KEEP="${BACKUP_KEEP:-5}"
 DATE=$(date +%Y%m%d_%H%M%S)
-TAR_FILE="$BACKUP_DIR/termux_config_$DATE.tar.gz"
-PKG_FILE="$BACKUP_DIR/pkg_list_$DATE.txt"
+OUT="$BACKUP_DIR/termux_config_$DATE.tar.gz.gpg"
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"; rm -f "$OUT.partial"' EXIT
+mkdir -p "$BACKUP_DIR"
 
-echo "📦 Backing up installed packages list to $PKG_FILE..."
-dpkg -l | awk '{print $2, $3}' > "$PKG_FILE"
+PASSFILE="${BACKUP_PASSFILE:-}"
+if [ -z "$PASSFILE" ]; then
+  PASSFILE="$WORK/pass"
+  read -rsp "Backup passphrase: " p1 < /dev/tty; echo
+  read -rsp "Repeat passphrase: " p2 < /dev/tty; echo
+  [ -n "$p1" ] && [ "$p1" = "$p2" ] || { echo "❌ Passphrases empty or different." >&2; exit 1; }
+  printf '%s' "$p1" > "$PASSFILE"; unset p1 p2
+fi
+GPG=(gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-file "$PASSFILE")
 
-echo "💾 Backing up configuration files to $TAR_FILE..."
-tar --exclude='.cache' --exclude='.git' --exclude='.npm' -czf "$TAR_FILE" \
-    -C "$HOME" .zshrc .termux .config .tmux.conf.local start-x11.sh stop-x11.sh 2>/dev/null || true
+echo "📦 Recording installed packages..."
+dpkg --get-selections > "$WORK/pkg-selections.txt"
+if ! apt-mark showmanual > "$WORK/pkg-manual.txt" 2>/dev/null; then
+  echo "⚠️  apt-mark unavailable here; pkg-manual.txt is empty, pkg-selections.txt is complete."
+fi
 
-echo "✅ Backup complete!"
-echo "📍 Archive location: $TAR_FILE"
+ITEMS=()
+for f in .zshrc .termux .config .tmux .tmux.conf.local .gitconfig .gitignore_global .ssh .gnupg bin start-x11.sh stop-x11.sh termux-dotfiles; do
+  [ -e "$HOME/$f" ] && ITEMS+=("$f")
+done
+
+echo "💾 Writing encrypted archive (${ITEMS[*]})..."
+tar --exclude='.cache' --exclude='.npm' --exclude='.ssh/agent' --exclude='S.*' --exclude='*.lock' \
+    -cz -C "$HOME" "${ITEMS[@]}" -C "$WORK" pkg-manual.txt pkg-selections.txt \
+  | "${GPG[@]}" --symmetric --cipher-algo AES256 -o "$OUT.partial"
+
+echo "🔎 Verifying archive..."
+"${GPG[@]}" -d "$OUT.partial" | tar -tz > "$WORK/listing"
+grep -qx 'pkg-selections.txt' "$WORK/listing" || { echo "❌ Package list missing from archive" >&2; exit 1; }
+for must in .zshrc .ssh/id_ed25519; do
+  if [ -e "$HOME/$must" ] && ! grep -qx -- "$must" "$WORK/listing"; then
+    echo "❌ Missing from archive: $must" >&2; exit 1
+  fi
+done
+mv "$OUT.partial" "$OUT"
+
+# Rotate
+ls -1t "$BACKUP_DIR"/termux_config_*.tar.gz.gpg 2>/dev/null | tail -n +$((KEEP + 1)) | while IFS= read -r old; do rm -f -- "$old"; done
+
+echo "✅ Backup verified: $OUT ($(du -h "$OUT" | cut -f1), $(wc -l < "$WORK/listing") entries, keeping last $KEEP)"

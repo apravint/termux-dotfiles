@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""
+CLI Stock Market News & Ticker Fetcher
+Usage: stock-news [symbol] (e.g. stock-news AAPL, stock-news RELIANCE.NS, stock-news)
+"""
+
+import sys
+import json
+import urllib.request
+import xml.etree.ElementTree as ET
+
+def fetch_rss_news(feed_url, max_items=8):
+    req = urllib.request.Request(feed_url, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            xml_data = response.read()
+            root = ET.fromstring(xml_data)
+            items = []
+            for item in root.findall('.//item')[:max_items]:
+                title = item.find('title').text if item.find('title') is not None else 'No Title'
+                link = item.find('link').text if item.find('link') is not None else ''
+                pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ''
+                items.append({'title': title, 'link': link, 'date': pub_date})
+            return items
+    except Exception as e:
+        return [{'title': f'Error fetching news: {e}', 'link': '', 'date': ''}]
+
+def get_stock_news(symbol=None):
+    if symbol:
+        print(f"📈 Fetching Stock News for symbol: {symbol.upper()}...\n")
+        url = f"https://news.google.com/rss/search?q={symbol}+stock+market&hl=en-US&gl=US&ceid=US:en"
+    else:
+        print("📰 Fetching Latest Top Financial & Stock Market News...\n")
+        url = "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en"
+
+    news_items = fetch_rss_news(url)
+    
+    print("==========================================================================")
+    print("                    ⚡ LATEST STOCK MARKET HEADLINES                     ")
+    print("==========================================================================")
+    for idx, item in enumerate(news_items, 1):
+        print(f"\n{idx}. {item['title']}")
+        if item['date']:
+            print(f"   📅 Date: {item['date']}")
+        if item['link']:
+            print(f"   🔗 Link: {item['link']}")
+    print("\n==========================================================================")
+
+if __name__ == "__main__":
+    symbol_arg = sys.argv[1] if len(sys.argv) > 1 else None
+    get_stock_news(symbol_arg)

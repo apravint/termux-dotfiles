@@ -1,0 +1,30 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Usage: clean-system [--deep]   --deep also clears Gradle caches (next builds re-download)
+set -u
+DEEP=0
+case "${1:-}" in
+  --deep) DEEP=1 ;;
+  "") ;;
+  *) echo "Usage: clean-system [--deep]" >&2; exit 2 ;;
+esac
+before=$(df -k "$HOME" | awk 'NR==2{print $3}')
+
+echo "🧹 Starting system cleanup..."
+command -v npm >/dev/null && { echo "📦 npm cache"; npm cache clean --force 2>/dev/null; }
+command -v python3 >/dev/null && { echo "🐍 pip cache"; python3 -m pip cache purge 2>/dev/null; }
+for d in "$HOME"/projects/*/.next/cache; do
+  [ -d "$d" ] && { echo "⚡ $d"; rm -rf -- "$d"; }
+done
+command -v pkg >/dev/null && { echo "📦 apt archives"; pkg clean 2>/dev/null || echo "   skipped (pkg clean failed)"; }
+rm -rf "$HOME"/test_*.mp3 "$HOME"/test_*_dir 2>/dev/null
+
+if [ "$DEEP" = 1 ]; then
+  command -v gradle >/dev/null && gradle --stop >/dev/null 2>&1
+  echo "🐘 Gradle caches"; rm -rf "$HOME/.gradle/caches" "$HOME/.gradle/daemon"
+else
+  echo "🐘 Keeping Gradle caches (use --deep to clear)"
+fi
+
+after=$(df -k "$HOME" | awk 'NR==2{print $3}')
+echo "✅ Done. Freed about $(( (before - after) / 1024 )) MB."
+df -h "$HOME" | awk 'NR==1 || NR==2'

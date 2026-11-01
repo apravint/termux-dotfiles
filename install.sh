@@ -23,6 +23,8 @@ pkg install -y \
   neovim \
   curl \
   git \
+  gnupg \
+  openssh \
   proot-distro \
   xfce4 \
   termux-x11-nightly 2>/dev/null || pkg install -y xfce4
@@ -37,26 +39,18 @@ fi
 git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM}/plugins/zsh-autosuggestions" 2>/dev/null || true
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting" 2>/dev/null || true
 
-# Copy Dotfiles
-echo "⚙️ Copying configuration dotfiles..."
+# Link dotfiles so the repo and the live config cannot drift apart
+echo "⚙️ Linking configuration dotfiles..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-cp "${SCRIPT_DIR}/.zshrc" "${HOME}/.zshrc"
 mkdir -p "${HOME}/.termux" "${HOME}/bin"
-cp "${SCRIPT_DIR}/.termux/termux.properties" "${HOME}/.termux/termux.properties"
 
-if [ -f "${SCRIPT_DIR}/.tmux.conf" ]; then
-  cp "${SCRIPT_DIR}/.tmux.conf" "${HOME}/.tmux.conf"
-fi
-if [ -f "${SCRIPT_DIR}/.tmux.conf.local" ]; then
-  cp "${SCRIPT_DIR}/.tmux.conf.local" "${HOME}/.tmux.conf.local"
-fi
-
-cp "${SCRIPT_DIR}/start-x11.sh" "${HOME}/start-x11.sh"
-cp "${SCRIPT_DIR}/stop-x11.sh" "${HOME}/stop-x11.sh"
-cp "${SCRIPT_DIR}/bin/termux-backup" "${HOME}/bin/termux-backup"
-
-chmod +x "${HOME}/start-x11.sh" "${HOME}/stop-x11.sh" "${HOME}/bin/termux-backup"
+for f in .zshrc .tmux.conf.local start-x11.sh stop-x11.sh .termux/termux.properties \
+         bin/termux-backup bin/clean-system bin/stock-news; do
+  ln -sfn "${SCRIPT_DIR}/${f}" "${HOME}/${f}"
+done
+[ -e "${HOME}/.tmux.conf" ] || ln -s "${SCRIPT_DIR}/.tmux.conf" "${HOME}/.tmux.conf"
+cp "${SCRIPT_DIR}/.termux/font.ttf" "${HOME}/.termux/font.ttf"
+chmod +x "${SCRIPT_DIR}"/bin/* "${SCRIPT_DIR}"/start-x11.sh "${SCRIPT_DIR}"/stop-x11.sh
 
 # Apply Termux Settings
 termux-reload-settings 2>/dev/null || true

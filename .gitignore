@@ -1,0 +1,8 @@
+# Shell / Linux system ignore
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.tmp
+*.bak
+.env

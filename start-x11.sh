@@ -1,17 +1,18 @@
 #!/data/data/com.termux/files/usr/bin/zsh
-# Start Termux:X11 on :1 with the Iram i3 desktop. Usage: x11 [--xfce]
+# Start Termux:X11 on :1 with XFCE. Usage: x11 [--iram] (--iram uses the i3 desktop)
 WALLPAPER="$HOME/wallpaper.jpg"
 IRAM_SESSION="$HOME/termux-dotfiles/iram-x11/session"
-missing=()
-for c in i3 polybar rofi picom feh; do command -v $c >/dev/null || missing+=($c); done
 
-mode=iram
-if [[ "${1:-}" == "--xfce" ]]; then
-  mode=xfce
-elif (( $#missing )); then
-  mode=xfce
-  echo "⚠️  Iram desktop needs: pkg install $missing"
-  echo "   Starting XFCE instead."
+mode=xfce
+if [[ "${1:-}" == "--iram" ]]; then
+  missing=()
+  for c in i3 polybar rofi picom feh; do command -v $c >/dev/null || missing+=($c); done
+  if (( $#missing )); then
+    echo "⚠️  Iram desktop needs: pkg install $missing"
+    echo "   Starting XFCE instead."
+  else
+    mode=iram
+  fi
 fi
 
 "$HOME/stop-x11.sh" --quiet || exit 1

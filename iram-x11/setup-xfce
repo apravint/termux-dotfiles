@@ -1,0 +1,56 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Turns XFCE on Termux into a real desktop: adds full apps, removes filler.
+# Run in normal Termux, not as root or in proot. Shows the changes and asks first.
+set -euo pipefail
+
+if [ "$(id -u)" = 0 ]; then
+  echo "Run this in normal Termux, not as root or in proot." >&2
+  exit 1
+fi
+
+INSTALL="
+  code-oss libreoffice gimp vlc evince keepassxc transmission-gtk
+  pavucontrol xfce4-pulseaudio-plugin
+"
+REMOVE="
+  golang openjdk-17 openjdk-17-x uv yazi fluent-gtk-theme parole
+  xfce4-goodies xfce4-eyes-plugin xfce4-mailwatch-plugin xfce4-notes-plugin
+  xfce4-timer-plugin xfce4-wavelan-plugin xfce4-calculator-plugin xfce4-dict
+  xfce4-screensaver gigolo
+"
+
+installed=""
+for p in $REMOVE; do
+  if dpkg-query -W -f='${db:Status-Status}' "$p" 2>/dev/null | grep -qx installed; then
+    installed="$installed $p"
+  fi
+done
+
+pkg update -y
+
+echo
+echo "Will install or upgrade:"
+apt-get -s install $INSTALL | awk '/^Inst/{print "  " $2}'
+if [ -n "$installed" ]; then
+  echo
+  echo "Will remove:"
+  # shellcheck disable=SC2086
+  apt-get -s remove $installed | awk '/^Remv/{print "  " $2}'
+fi
+echo
+read -r -p "Continue? [y/N] " answer
+case "$answer" in
+  y|Y) ;;
+  *) echo "Nothing changed."; exit 0 ;;
+esac
+
+# Install first, so a failed download leaves everything you already have.
+pkg install -y $INSTALL
+if [ -n "$installed" ]; then
+  # No autoremove: dropping the goodies metapackage would cascade into wanted plugins.
+  # shellcheck disable=SC2086
+  apt-get remove -y $installed
+fi
+
+echo
+echo "Done. Start the desktop with: ~/start-x11.sh"
